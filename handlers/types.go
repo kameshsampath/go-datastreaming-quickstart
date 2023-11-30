@@ -10,7 +10,7 @@ import (
 // the brokers list passed to the server.go and share it among all contexts
 const SEED_CONTEXT_KEY = "seeds"
 
-// Kafka broker list as comma separated valuesd
+// Comma separated Kafka broker list, split and stored into string array
 type Seeds []string
 
 // Request holds the JSON request to post data to a topic
@@ -46,8 +46,7 @@ func init() {
 	sugar = logger.Sugar()
 }
 
-// SeedsContext adds the broker list to echo.Context
-// and make it available across the context
+// SeedsContext adds the broker list to echo.Context and make it available across the context
 func (s Seeds) SeedsContext() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -56,4 +55,10 @@ func (s Seeds) SeedsContext() echo.MiddlewareFunc {
 			return next(c)
 		}
 	}
+}
+
+// NewClient builds the Kafka Client using the provided options
+func (s Seeds) NewClient(opts ...kgo.Opt) (*kgo.Client, error) {
+	opts = append(opts, kgo.SeedBrokers(s...))
+	return kgo.NewClient(opts...)
 }

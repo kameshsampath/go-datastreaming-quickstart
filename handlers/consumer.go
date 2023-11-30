@@ -12,8 +12,7 @@ import (
 	"github.com/twmb/franz-go/pkg/kgo"
 )
 
-// Consume methods consumes the message from the group
-// and stream it
+// Consume methods consumes the message from the group and stream it
 func Consume(c echo.Context) error {
 	var query Query
 	if err := c.Bind(&query); err != nil {
@@ -36,12 +35,11 @@ func Consume(c echo.Context) error {
 		"groupID", groupID,
 	)
 
-	client, err := kgo.NewClient(
-		kgo.SeedBrokers(seeds...),
+	opts := []kgo.Opt{
 		kgo.ConsumeTopics(query.Topic),
 		kgo.ConsumerGroup(groupID),
-	)
-
+	}
+	client, err := seeds.NewClient(opts...)
 	if err != nil {
 		sugar.Errorf("error building streaming client", "error", err)
 		return err
@@ -49,8 +47,8 @@ func Consume(c echo.Context) error {
 	defer client.Close()
 
 	enc := json.NewEncoder(c.Response())
-
 	ch := make(chan Response)
+
 	go func() {
 		poll(client, ch)
 	}()

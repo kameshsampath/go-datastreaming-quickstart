@@ -18,10 +18,7 @@ func Produce(c echo.Context) error {
 	}
 
 	seeds := c.Get(SEED_CONTEXT_KEY).(Seeds)
-	client, err := kgo.NewClient(
-		kgo.SeedBrokers(seeds...),
-	)
-
+	client, err := seeds.NewClient()
 	if err != nil {
 		sugar.Fatal(err)
 	}
@@ -32,7 +29,6 @@ func Produce(c echo.Context) error {
 	tctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
-	//Sync Producer
 	//TODO do async produce ??
 	kr := &kgo.Record{
 		Key:   []byte(request.Key),
@@ -48,6 +44,7 @@ func Produce(c echo.Context) error {
 		kr.Partition = int32(p)
 	}
 
+	//Sync Producer
 	if err := client.ProduceSync(tctx, kr).FirstErr(); err != nil {
 		c.Logger().Errorf("error sending message to topic %s,%s", request.Topic, err)
 		return err
