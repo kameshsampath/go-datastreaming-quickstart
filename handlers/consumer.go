@@ -31,7 +31,7 @@ func Consume(c echo.Context) error {
 		groupID = fmt.Sprintf("%s-echo-group-%s", query.Topic, uuid.New())
 	}
 
-	sugar.Infow("Streaming messages for topic",
+	sugar.Infow("Consuming and streaming messages",
 		"topic", query.Topic,
 		"groupID", groupID,
 	)
