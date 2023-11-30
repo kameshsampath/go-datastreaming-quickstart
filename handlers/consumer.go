@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 	"github.com/twmb/franz-go/pkg/kgo"
 )
 
@@ -23,7 +24,7 @@ func Consume(c echo.Context) error {
 	c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	c.Response().WriteHeader(http.StatusOK)
 
-	c.Logger().Infof("Streaming messages for topic, %s", query.Topic)
+	log.Printf("Streaming messages for topic: %s", query.Topic)
 
 	seeds := c.Get(SEED_CONTEXT_KEY).(Seeds)
 
@@ -40,7 +41,7 @@ func Consume(c echo.Context) error {
 	)
 
 	if err != nil {
-		c.Logger().Errorf("error building streaming client %s", err)
+		log.Errorf("error building streaming client, %s", err)
 		return err
 	}
 	defer client.Close()
@@ -69,7 +70,6 @@ func Consume(c echo.Context) error {
 // if err then error is send as part of channel
 func poll(client *kgo.Client, ch chan Response) {
 	ctx := context.Background()
-
 	for {
 		fetches := client.PollFetches(ctx)
 		if errs := fetches.Errors(); len(errs) > 0 {
@@ -89,6 +89,5 @@ func poll(client *kgo.Client, ch chan Response) {
 				}
 			}
 		})
-
 	}
 }

@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 	"github.com/twmb/franz-go/pkg/kgo"
 )
 
@@ -34,4 +36,16 @@ type Response struct {
 type Query struct {
 	Topic string `query:"topic"`
 	Group string `query:"group"`
+}
+
+// SeedsContext adds the broker list to echo.Context
+// and make it available across the context
+func (s Seeds) SeedsContext() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			log.Printf("Using brokers %v as seeds", s)
+			c.Set(SEED_CONTEXT_KEY, s)
+			return next(c)
+		}
+	}
 }

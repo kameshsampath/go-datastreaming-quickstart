@@ -16,8 +16,6 @@ import (
 )
 
 func main() {
-	//Jai Guru
-
 	var seeds string
 	flag.StringVar(&seeds, "brokers", "127.0.0.1:9092", "comma separated list of broker addresses")
 	flag.Parse()
@@ -27,13 +25,8 @@ func main() {
 	e := echo.New()
 	e.Use(middleware.Recover())
 	e.Use(middleware.Logger())
-	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			e.Logger.Infof("Using brokers %v as seeds", brokers)
-			c.Set(handlers.SEED_CONTEXT_KEY, brokers)
-			return next(c)
-		}
-	})
+	//middleware to set context variables that will be available to all contexts
+	e.Use(brokers.SeedsContext())
 
 	// API
 	e.GET("/", handlers.Consume)
@@ -53,6 +46,6 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := e.Shutdown(ctx); err != nil {
-		e.Logger.Fatal(err)
+		log.Fatal(err)
 	}
 }
