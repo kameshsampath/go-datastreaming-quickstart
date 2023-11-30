@@ -9,7 +9,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/gommon/log"
 	"github.com/twmb/franz-go/pkg/kgo"
 )
 
@@ -24,8 +23,6 @@ func Consume(c echo.Context) error {
 	c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	c.Response().WriteHeader(http.StatusOK)
 
-	log.Printf("Streaming messages for topic: %s", query.Topic)
-
 	seeds := c.Get(SEED_CONTEXT_KEY).(Seeds)
 
 	groupID := fmt.Sprintf("%s-echo-group", query.Topic)
@@ -34,6 +31,11 @@ func Consume(c echo.Context) error {
 		groupID = fmt.Sprintf("%s-echo-group-%s", query.Topic, uuid.New())
 	}
 
+	sugar.Infow("Streaming messages for topic",
+		"topic", query.Topic,
+		"groupID", groupID,
+	)
+
 	client, err := kgo.NewClient(
 		kgo.SeedBrokers(seeds...),
 		kgo.ConsumeTopics(query.Topic),
@@ -41,7 +43,7 @@ func Consume(c echo.Context) error {
 	)
 
 	if err != nil {
-		log.Errorf("error building streaming client, %s", err)
+		sugar.Errorf("error building streaming client", "error", err)
 		return err
 	}
 	defer client.Close()

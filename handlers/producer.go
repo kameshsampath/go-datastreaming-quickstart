@@ -23,7 +23,7 @@ func Produce(c echo.Context) error {
 	)
 
 	if err != nil {
-		c.Logger().Fatal(err)
+		sugar.Fatal(err)
 	}
 	defer client.Close()
 
@@ -53,7 +53,7 @@ func Produce(c echo.Context) error {
 		return err
 	}
 
-	c.Logger().Infof("successfully posted message topic,%s", request.Topic)
+	sugar.Infow("Successfully posted message", "topic", request.Topic, "Key", request.Key, "Value", request.Value)
 
 	return nil
 

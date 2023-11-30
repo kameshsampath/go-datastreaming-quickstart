@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/gommon/log"
 	"github.com/twmb/franz-go/pkg/kgo"
+	"go.uber.org/zap"
 )
 
 // SEED_CONTEXT_KEY is the echo.Context key which is used to store
@@ -38,12 +38,20 @@ type Query struct {
 	Group string `query:"group"`
 }
 
+var sugar *zap.SugaredLogger
+
+func init() {
+	logger, _ := zap.NewProduction()
+	logger.Sync()
+	sugar = logger.Sugar()
+}
+
 // SeedsContext adds the broker list to echo.Context
 // and make it available across the context
 func (s Seeds) SeedsContext() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			log.Printf("Using brokers %v as seeds", s)
+			sugar.Infow("Kafka client configuration", "brokers", s)
 			c.Set(SEED_CONTEXT_KEY, s)
 			return next(c)
 		}
